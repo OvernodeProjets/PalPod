@@ -44,11 +44,11 @@ const existingResources = async (userID) => {
 };
   
 // Max resources (the ones the user has purchased or been given)
-const maxResources = async (userID) => {
+const maxResources = async (email) => {
   return {
-    "cpu": await db.get(`cpu-${userID}`),
-    "ram": await db.get(`ram-${userID}`),
-    "disk": await db.get(`disk-${userID}`),
+    "cpu": await db.get(`cpu-${email}`),
+    "ram": await db.get(`ram-${email}`),
+    "disk": await db.get(`disk-${email}`),
     "server": await db.get(`server-${email}`)
   };
 };
@@ -112,8 +112,8 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
       console.log("finsh ensureResourcesExist calc");
   
       // Calculate existing and maximum resources
-      const existing = await existingResources(req.user.id) || 0;
-      const max = await maxResources(req.user.id) || 0;
+      const existing = await existingResources(req.user.id);
+      const max = await maxResources(req.user.email);
   
       res.render('dashboard', { 
         coins: await db.get(`coins-${req.user.email}`) || 0, // User's coins
