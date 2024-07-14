@@ -13,7 +13,7 @@ All features:
 - OAuth2 (Discord)
 - Store (buy resources with coins)
 - Dashboard (view resources & servers)
-- Admin (set, add, remove coins/scan eggs & locations)
+- Admin (set, add, remove coins/scan images & nodes)
 
 <br>
 
@@ -30,8 +30,9 @@ All features:
 # Install Guide
 
 Warning: For this version you need to use [my skyport version](https://github.com/achul123/panel5), I will remove this message when atqr merge my pull request
+
 Warning: You need Skyport already set up on a domain for PalPod to work
-1. Upload the file above onto a Skyport NodeJS server [Download the egg from Parkervcp's GitHub Repository](https://github.com/parkervcp/eggs/blob/master/generic/nodejs/egg-node-js-generic.json)
+1. Upload the file above onto a Skyport NodeJS server [Download the egg from pelican-eggs Repository](https://github.com/pelican-eggs/eggs/blob/master/generic/nodejs/egg-node-js-generic.json)
 2. Unarchive the file and set the server to use NodeJS 16
 3. Configure `.env`, `/storage/eggs.json` & `/storage/plans.json` with the scan or manuel
 4. Run `npm i`
