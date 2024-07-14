@@ -108,7 +108,7 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
       console.log("finsh servers calc")
   
       // Ensure all resources are set to 0 if they don't exist
-      await ensureResourcesExist(req.user.id);
+      await ensureResourcesExist(req.user.email);
       console.log("finsh ensureResourcesExist calc");
   
       // Calculate existing and maximum resources

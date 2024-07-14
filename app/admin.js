@@ -31,7 +31,7 @@ router.get('/admin', ensureAuthenticated, async (req, res) => {
 // Scan eggs & locations
 router.get('/scanimages', ensureAuthenticated, async (req, res) => {
     if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
-        if (await db.get(`admin-${req.user.email}`) === true) {
+        if (await db.get(`admin-${req.user.email}`) == true) {
         try {
             const response = await axios.get(`${skyport.url}/api/images`, {
                 headers: {
