@@ -29,46 +29,44 @@ router.get('/admin', ensureAuthenticated, async (req, res) => {
 });
 
 // Scan eggs & locations
-router.get('/scaneggs', ensureAuthenticated, async (req, res) => {
+router.get('/scanimages', ensureAuthenticated, async (req, res) => {
     if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
-    if (await db.get(`admin-${req.user.email}`) == true) {
+        if (await db.get(`admin-${req.user.email}`) === true) {
         try {
-            // just fetch the first page, i will see that later
-            const response = await axios.get(`${skyport.url}/api/application/nests/1/eggs?include=nest,variables`, {
+            const response = await axios.get(`${skyport.url}/api/images`, {
                 headers: {
-                    'Authorization': `Bearer ${skyport.key}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'x-api-key': skyport.key
                 }
             });
 
-            const eggs = response.data.data;
-            const formattedEggs = eggs.map(egg => ({
-                id: egg.attributes.id,
-                name: egg.attributes.name,
-                description: egg.attributes.description,
-                docker_image: egg.attributes.docker_image,
-                startup: egg.attributes.startup,
-                settings: egg.attributes.relationships.variables.data.reduce((acc, variable) => {
-                    acc[variable.attributes.env_variable] = variable.attributes.default_value;
-                    return acc;
-                }, {})
+            const images = response.data;
+            const formattedImages = images.map(image => ({
+                Image: image.Image,
+                Cmd: image.Cmd,
+                Env: image.Env,
+                Scripts: image.Scripts,
+                Name: image.Name,
+                Description: image.Description,
+                Author: image.Author,
+                AuthorName: image.AuthorName,
+                Meta: image.Meta,
+                Id: image.Id
             }));
 
-            let existingEggs = [];
+            let existingImages = [];
             try {
-                const existingEggsData = fs.readFileSync('storage/eggs.json');
-                existingEggs = JSON.parse(existingEggsData);
+                const existingImagesData = fs.readFileSync('storage/images.json');
+                existingImages = JSON.parse(existingImagesData);
             } catch (error) {
-                console.log("No existing eggs file found.");
+                console.log("No existing images file found.");
             }
 
-            const allEggs = [...existingEggs, ...formattedEggs];
-            fs.writeFileSync('storage/eggs.json', JSON.stringify(allEggs, null, 2));
+            const allImages = [...existingImages, ...formattedImages];
+            fs.writeFileSync('storage/images.json', JSON.stringify(formattedImages, null, 2));
 
             res.redirect('/admin?success=COMPLETE');
         } catch (error) {
-            console.error(`Error fetching eggs: ${error}`);
+            console.error(`Error fetching images: ${error}`);
             res.redirect('/admin?err=FETCH_FAILED');
         }
     } else {
@@ -76,43 +74,43 @@ router.get('/scaneggs', ensureAuthenticated, async (req, res) => {
     }
 });
 
-router.get('/scanlocations', ensureAuthenticated, async (req, res) => {
-    if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
-    if (await db.get(`admin-${req.user.email}`) == true) {
-        try {
-            const response = await axios.get(`${skyport.url}/api/application/locations`, {
-                headers: {
-                    'Authorization': `Bearer ${skyport.key}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            const locations = response.data.data;
-            const formattedLocations = locations.map(locations => ({
-                id: locations.attributes.id,
-                name: locations.attributes.short
-            }));
-
-            let existingLocations = [];
-            try {
-                const existingLocationsData = fs.readFileSync('storage/locations.json');
-                existingLocations = JSON.parse(existingLocationsData);
-            } catch (error) {
-                console.log("No existing locations file found.");
-            }
-
-            const allLocations = [...existingLocations, ...formattedLocations];
-            fs.writeFileSync('storage/locations.json', JSON.stringify(allLocations, null, 2));
-
-            res.redirect('/admin?success=COMPLETE');
-        } catch (error) {
-            console.error(`Error fetching locations: ${error}`);
-            res.redirect('/admin?err=FETCH_FAILED');
-        }
-    } else {
-        res.redirect('/dashboard');
-    }
-});
+// router.get('/scanlocations', ensureAuthenticated, async (req, res) => {
+//     if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
+//     if (await db.get(`admin-${req.user.email}`) == true) {
+//         try {
+//             const response = await axios.get(`${skyport.url}/api/application/locations`, {
+//                 headers: {
+//                     'Authorization': `Bearer ${skyport.key}`,
+//                     'Accept': 'application/json',
+//                     'Content-Type': 'application/json'
+//                 }
+//             });
+//             const locations = response.data.data;
+//             const formattedLocations = locations.map(locations => ({
+//                 id: locations.attributes.id,
+//                 name: locations.attributes.short
+//             }));
+// 
+//             let existingLocations = [];
+//             try {
+//                 const existingLocationsData = fs.readFileSync('storage/locations.json');
+//                 existingLocations = JSON.parse(existingLocationsData);
+//             } catch (error) {
+//                 console.log("No existing locations file found.");
+//             }
+// 
+//             const allLocations = [...existingLocations, ...formattedLocations];
+//             fs.writeFileSync('storage/locations.json', JSON.stringify(allLocations, null, 2));
+// 
+//             res.redirect('/admin?success=COMPLETE');
+//         } catch (error) {
+//             console.error(`Error fetching locations: ${error}`);
+//             res.redirect('/admin?err=FETCH_FAILED');
+//         }
+//     } else {
+//         res.redirect('/dashboard');
+//     }
+// });
 
 // Set & Add coins
 router.get('/addcoins', ensureAuthenticated, async (req, res) => {
@@ -147,32 +145,26 @@ router.get('/setcoins', ensureAuthenticated, async (req, res) => {
 router.get('/addresources', ensureAuthenticated, async (req, res) => {
     if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
     if (await db.get(`admin-${req.user.email}`) == true) {
-        const { email, cpu, ram, disk, backup, database } = req.query;
-        if (!email || !cpu || !ram || !disk || !backup || !database) return res.redirect('/admin?err=INVALIDPARAMS');
+        const { email, cpu, ram, disk } = req.query;
+        if (!email || !cpu || !ram || !disk) return res.redirect('/admin?err=INVALIDPARAMS');
 
         // Resource amounts
         let cpuAmount = parseInt(cpu) * 100;
         let ramAmount = parseInt(ram) * 1024;
         let diskAmount = parseInt(disk) * 1024;
-        let backupAmount = parseInt(backup);
-        let databaseAmount = parseInt(database);
 
         // Ensure amount are numbers
-        if (isNaN(cpuAmount) || isNaN(ramAmount) || isNaN(diskAmount) || isNaN(backupAmount) || isNaN(databaseAmount)) return res.redirect('/admin?err=INVALIDAMOUNT');
+        if (isNaN(cpuAmount) || isNaN(ramAmount) || isNaN(diskAmount)) return res.redirect('/admin?err=INVALIDAMOUNT');
         
         // Current resources
         let currentCpu = parseInt(await db.get(`cpu-${email}`)) || 0;
         let currentRam = parseInt(await db.get(`ram-${email}`)) || 0;
         let currentDisk = parseInt(await db.get(`disk-${email}`)) || 0;
-        let currentBackup = parseInt(await db.get(`backup-${email}`)) || 0;
-        let currentDatabase = parseInt(await db.get(`database-${email}`)) || 0;
 
         // Update resources
         await db.set(`cpu-${email}`, currentCpu + cpuAmount);
         await db.set(`ram-${email}`, currentRam + ramAmount);
         await db.set(`disk-${email}`, currentDisk + diskAmount);
-        await db.set(`backup-${email}`, currentBackup + backupAmount);
-        await db.set(`database-${email}`, currentDatabase + databaseAmount);
 
         res.redirect('/admin?success=COMPLETE');
     } else {
@@ -183,25 +175,21 @@ router.get('/addresources', ensureAuthenticated, async (req, res) => {
 router.get('/setresources', ensureAuthenticated, async (req, res) => {
     if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
     if (await db.get(`admin-${req.user.email}`) == true) {
-        const { email, cpu, ram, disk, backup, database } = req.query;
-        if (!email || !cpu || !ram || !disk || !backup || !database) return res.redirect('/admin?err=INVALIDPARAMS');
+        const { email, cpu, ram, disk } = req.query;
+        if (!email || !cpu || !ram || !disk) return res.redirect('/admin?err=INVALIDPARAMS');
 
         // Resource amounts
         let cpuAmount = parseInt(cpu) * 100;
         let ramAmount = parseInt(ram) * 1024;
         let diskAmount = parseInt(disk) * 1024;
-        let backupAmount = parseInt(backup);
-        let databaseAmount = parseInt(database);
 
         // Ensure amount are numbers
-        if (isNaN(cpuAmount) || isNaN(ramAmount) || isNaN(diskAmount) || isNaN(backupAmount) || isNaN(databaseAmount)) return res.redirect('/admin?err=INVALIDAMOUNT');
+        if (isNaN(cpuAmount) || isNaN(ramAmount) || isNaN(diskAmount)) return res.redirect('/admin?err=INVALIDAMOUNT');
 
         // Update resources
         await db.set(`cpu-${email}`, cpuAmount);
         await db.set(`ram-${email}`, ramAmount);
         await db.set(`disk-${email}`, diskAmount);
-        await db.set(`backup-${email}`, backupAmount);
-        await db.set(`database-${email}`, databaseAmount);
 
         res.redirect('/admin?success=COMPLETE');
     } else {

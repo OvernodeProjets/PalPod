@@ -3,25 +3,9 @@ const path = require('path');
 const fs = require('fs');
 
 const { db } = require('../function/db');
+const { ensureAuthenticated } = require('../function/ensureAuthenticated.js');
 
 const router = express.Router();
-
-function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        // Check if the user is banned
-        db.get(`banned-${req.user.email}`).then(reason => {
-            if (reason) return res.redirect(`/?err=BANNED&reason=${encodeURIComponent(reason)}`);
-
-            return next();
-        }).catch(err => {
-            console.error(err);
-            return res.status(500).send('Internal Server Error');
-        });
-    } else {
-        req.session.returnTo = req.originalUrl;
-        res.redirect('/');
-    }
-};
 
 const resourceCosts = {
     cpu: process.env.CPU_COST,
