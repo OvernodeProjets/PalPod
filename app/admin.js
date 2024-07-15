@@ -74,43 +74,46 @@ router.get('/scanimages', ensureAuthenticated, async (req, res) => {
     }
 });
 
-// router.get('/scanlocations', ensureAuthenticated, async (req, res) => {
-//     if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
-//     if (await db.get(`admin-${req.user.email}`) == true) {
-//         try {
-//             const response = await axios.get(`${skyport.url}/api/application/locations`, {
-//                 headers: {
-//                     'Authorization': `Bearer ${skyport.key}`,
-//                     'Accept': 'application/json',
-//                     'Content-Type': 'application/json'
-//                 }
-//             });
-//             const locations = response.data.data;
-//             const formattedLocations = locations.map(locations => ({
-//                 id: locations.attributes.id,
-//                 name: locations.attributes.short
-//             }));
-// 
-//             let existingLocations = [];
-//             try {
-//                 const existingLocationsData = fs.readFileSync('storage/locations.json');
-//                 existingLocations = JSON.parse(existingLocationsData);
-//             } catch (error) {
-//                 console.log("No existing locations file found.");
-//             }
-// 
-//             const allLocations = [...existingLocations, ...formattedLocations];
-//             fs.writeFileSync('storage/locations.json', JSON.stringify(allLocations, null, 2));
-// 
-//             res.redirect('/admin?success=COMPLETE');
-//         } catch (error) {
-//             console.error(`Error fetching locations: ${error}`);
-//             res.redirect('/admin?err=FETCH_FAILED');
-//         }
-//     } else {
-//         res.redirect('/dashboard');
-//     }
-// });
+router.get('/scannodes', ensureAuthenticated, async (req, res) => {
+    if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
+    if (await db.get(`admin-${req.user.email}`) == true) {
+        try {
+            const response = await axios.get(`${skyport.url}/api/nodes`, {
+                headers: {
+                    'x-api-key': skyport.key
+                }
+            });
+
+            const nodes = response.data;
+            const formattedNodes = nodes.map(node => ({
+                id: node.id,
+                name: node.name,
+                tags: node.tags,
+                processor: node.processor,
+                ram: node.ram,
+                disk: node.disk
+            }));
+
+            let existingNodes = [];
+            try {
+                const existingNodesData = fs.readFileSync('storage/nodes.json');
+                existingNodes = JSON.parse(existingNodesData);
+            } catch (error) {
+                console.log("No existing nodes file found.");
+            }
+
+            const allNodes = [...existingNodes, ...formattedNodes];
+            fs.writeFileSync('storage/nodes.json', JSON.stringify(allNodes, null, 2));
+
+            res.redirect('/admin?success=COMPLETE');
+        } catch (error) {
+            console.error(`Error fetching nodes: ${error}`);
+            res.redirect('/admin?err=FETCH_FAILED');
+        }
+    } else {
+        res.redirect('/dashboard');
+    }
+});
 
 // Set & Add coins
 router.get('/addcoins', ensureAuthenticated, async (req, res) => {

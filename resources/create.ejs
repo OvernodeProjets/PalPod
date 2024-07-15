@@ -136,7 +136,7 @@
                   <div class="md:col-span-1">
                     <div class="px-4 sm:px-0">
                       <h3 class="text-lg font-medium leading-6 text-white">Configuration</h3>
-                      <p class="mt-1 text-sm text-gray-400">Choose the location and egg for your server. This cannot be changed.</p>
+                      <p class="mt-1 text-sm text-gray-400">Choose the node and image for your server. This cannot be changed.</p>
                     </div>
                   </div>
                   <div class="mt-5 md:col-span-2 md:mt-0">
@@ -145,21 +145,21 @@
                         <div class="space-y-6 bg-gray-700/50 px-4 py-5 sm:p-6 rounded-md">
                           <div class="grid grid-cols-3 gap-6">
                             <div class="col-span-3 sm:col-span-2">
-                              <label for="location" class="block text-sm font-medium text-gray-400">Location</label>
+                              <label for="node" class="block text-sm font-medium text-gray-400">Node</label>
                               <div class="mt-1 flex rounded-md shadow-sm">
-                                <select type="text" name="location" id="location" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                  <% locations.forEach(function(location) { %>
-                                    <option value="<%= location.id %>"><%= location.name %></option>
+                                <select type="text" name="node" id="node" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                  <% nodes.forEach(function(node) { %>
+                                    <option value="<%= node.id %>"><%= node.name %></option>
                                   <% }); %>
                                 </select>
                               </div>
                             </div>
                             <div class="col-span-3 sm:col-span-2">
-                              <label for="egg" class="block text-sm font-medium text-gray-400">Egg</label>
+                              <label for="image" class="block text-sm font-medium text-gray-400">Image</label>
                               <div class="mt-1 flex rounded-md shadow-sm">
-                                <select type="text" name="eggsNames" id="egg" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                  <% eggs.forEach(function(egg) { %>
-                                    <option value="<%= egg.id %>"><%= egg.name %></option>
+                                <select type="text" name="imagesNames" id="image" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                  <% images.forEach(function(image) { %>
+                                    <option value="<%= image.Id %>"><%= image.Name %></option>
                                   <% }); %>
                                 </select>
                               </div>
@@ -176,20 +176,6 @@
                   <div class="border-t border-gray-700/75"></div>
                 </div>
               </div>
-              <script>
-                async function submitForm() {
-                  let name = encodeURIComponent(document.getElementById("name").value);
-                  let egg = encodeURIComponent(document.getElementById("egg").value);
-                  let ram = encodeURIComponent(document.getElementById("ram").value);
-                  let disk = encodeURIComponent(document.getElementById("disk").value);
-                  let cpu = encodeURIComponent(document.getElementById("cpu").value);
-                  let location = encodeURIComponent(document.getElementById("location").value);
-                  let database = encodeURIComponent(document.getElementById("database").value);
-                  let backup = encodeURIComponent(document.getElementById("backup").value)
-                  let allocation = encodeURIComponent(document.getElementById("allocation").value)
-                  document.location.href = `/create?name=${name}&egg=${egg}&ram=${ram}&disk=${disk}&cpu=${cpu}&database=${database}&backup=${backup}&allocation=${allocation}&location=${location}`;
-                }
-              </script>
               <div class="mt-10 sm:mt-0">
                 <div>
                   <div class="md:grid md:grid-cols-3 md:gap-6">
@@ -207,7 +193,7 @@
                               <div class="col-span-3 sm:col-span-2">
                                 <label for="cpu" class="block text-sm font-medium text-gray-400">CPU</label>
                                 <div class="mt-1 flex rounded-md shadow-sm">
-                                  <input type="text" name="cpu" id="cpu" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="100" />
+                                  <input type="text" name="cpu" id="cpu" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="1" />
                                 </div>
                               </div>
                             </div>
@@ -219,13 +205,14 @@
                                 </div>
                               </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-6">
+                            <!--<div class="grid grid-cols-3 gap-6">
                               <div class="col-span-3 sm:col-span-2">
                                 <label for="disk" class="block text-sm font-medium text-gray-400">Disk</label>
                                 <div class="mt-1 flex rounded-md shadow-sm">
                                   <input type="text" name="disk" id="disk" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="2048" />
                                 </div>
                               </div>
+                            -->
                             </div>
                           </div>
                         </div>
@@ -233,54 +220,6 @@
                     </div>
                   </div>
                 </div>
-                <div class="hidden sm:block" aria-hidden="true">
-                  <div class="py-5">
-                    <div class="border-t border-gray-700/75"></div>
-                  </div>
-                </div>
-                <div class="mt-10 sm:mt-0">
-                  <div>
-                    <div class="md:grid md:grid-cols-3 md:gap-6">
-                      <div class="md:col-span-1">
-                        <div class="px-4 sm:px-0">
-                          <h3 class="text-lg font-medium leading-6 text-white">Extra Ressource</h3>
-                          <p class="mt-1 text-sm text-gray-400">Decide how much of your total resource balance should be allocated to this database and backup server.</p>
-                        </div>
-                      </div>
-                      <div class="mt-5 md:col-span-2 md:mt-0">
-                        <form action="#" method="POST">
-                          <div class="shadow sm:overflow-hidden sm:rounded-md">
-                            <div class="space-y-6 bg-gray-700/50 px-4 py-5 sm:p-6 rounded-md mb-4">
-                              <div class="grid grid-cols-3 gap-6">
-                                <div class="col-span-3 sm:col-span-2">
-                                  <label for="database" class="block text-sm font-medium text-gray-400">Database</label>
-                                  <div class="mt-1 flex rounded-md shadow-sm">
-                                    <input type="text" name="database" id="database" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="1" />
-                                  </div>
-                                </div>
-                              </div>
-                              <div class="grid grid-cols-3 gap-6">
-                                <div class="col-span-3 sm:col-span-2">
-                                  <label for="backup" class="block text-sm font-medium text-gray-400">Backup</label>
-                                  <div class="mt-1 flex rounded-md shadow-sm">
-                                    <input type="text" name="backup" id="backup" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="1" />
-                                  </div>
-                                </div>
-                              </div>
-                              <div class="grid grid-cols-3 gap-6">
-                                <div class="col-span-3 sm:col-span-2">
-                                  <label for="allocation" class="block text-sm font-medium text-gray-400">Allocation</label>
-                                  <div class="mt-1 flex rounded-md shadow-sm">
-                                    <input type="text" name="allocation" id="allocation" class="transition ease-in-out delay-100 block w-full flex-1 text-white rounded-md bg-gray-700 border-gray-600/75 focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="1" />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
                 <div class="hidden sm:block" aria-hidden="true">
                   <div class="py-5">
                     <div class="border-t border-gray-700/75"></div>
@@ -300,6 +239,17 @@
                           <button onclick="submitForm()" class="transition ease-in-out delay-100 group relative flex w-1/4 justify-center rounded-md border border-transparent bg-blue-500 py-2 px-4 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none mb-12">
                             Create
                           </button>
+                          <script>
+                            async function submitForm() {
+                              let name = encodeURIComponent(document.getElementById("name").value);
+                              let image = encodeURIComponent(document.getElementById("image").value);
+                              let ram = encodeURIComponent(document.getElementById("ram").value);
+                              // let disk = encodeURIComponent(document.getElementById("disk").value);
+                              let cpu = encodeURIComponent(document.getElementById("cpu").value);
+                              let node = encodeURIComponent(document.getElementById("node").value);
+                              document.location.href = `/create?name=${name}&image=${image}&ram=${ram}&cpu=${cpu}&node=${node}`; // &disk=${disk}
+                            }
+                          </script>
                         </div>
                       </div>
                     </div>

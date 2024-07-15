@@ -29,12 +29,11 @@ All features:
 
 # Install Guide
 
-Warning: For this version you need to use [my skyport version](https://github.com/achul123/panel5), I will remove this message when atqr merge my pull request
+:Warning: You need Skyport already set up on a domain for PalPod to work
 
-Warning: You need Skyport already set up on a domain for PalPod to work
 1. Upload the file above onto a Skyport NodeJS server [Download the egg from pelican-eggs Repository](https://github.com/pelican-eggs/eggs/blob/master/generic/nodejs/egg-node-js-generic.json)
 2. Unarchive the file and set the server to use NodeJS 16
-3. Configure `.env`, `/storage/eggs.json` & `/storage/plans.json` with the scan or manuel
+3. Configure `.env`, `/storage/eggs.json` & `/storage/plans.json` with the scan or manuel and ports `/storage/ports.json`
 4. Run `npm i`
 5. Start the server with `node index.js`
 6. Login to your DNS manager, point the domain you want your dashboard to be hosted on to your VPS IP address. (Example: dashboard.domain.com 192.168.0.1)

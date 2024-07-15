@@ -1,9 +1,11 @@
 const express = require('express');
 const axios = require('axios');
+const fs = require('fs');
 
 const { db } = require('../function/db');
-const { calculateResource } = require('../function/calculateResource.js');
-const { ensureAuthenticated } = require('../function/ensureAuthenticated.js');
+const { calculateResource } = require('../function/calculateResource');
+const { ensureAuthenticated } = require('../function/ensureAuthenticated');
+const { getRandomPort } = require('../function/getRandomPort');
 
 const router = express.Router();
 
@@ -13,11 +15,11 @@ const skyport = {
 };
 
 // Existing resources (the ones in use on servers)
-const existingResources = async (email) => {
+const existingResources = async (userID) => {
   return {
-    "cpu": await calculateResource(email, 'Cpu'),
-    "ram": await calculateResource(email, 'Memory'),
-    "disk": await calculateResource(email, 'Disk')
+    "cpu": await calculateResource(userID, 'Cpu'),
+    "ram": await calculateResource(userID, 'Memory'),
+    "disk": await calculateResource(userID, 'Disk')
   };
 };
 
@@ -73,22 +75,22 @@ router.get('/delete', ensureAuthenticated, async (req, res) => {
 // Create server
 router.get('/create', ensureAuthenticated, async (req, res) => {
   if (!req.user || !req.user.email || !req.user.id) return res.redirect('/login/discord');
-  if (!req.query.name || !req.query.node || !req.query.image || !req.query.cpu || !req.query.ram || !req.query.disk) return res.redirect('../create-server?err=MISSINGPARAMS');
+  if (!req.query.name || !req.query.node || !req.query.image || !req.query.cpu || !req.query.ram) return res.redirect('../create-server?err=MISSINGPARAMS'); //  || !req.query.disk
   
   // Check if user has enough resources to create a server
 
   const max = await maxResources(req.user.email);
-  const existing = await existingResources(req.user.email);
+  const existing = await existingResources(req.user.id);
 
   if (parseInt(req.query.cpu) > parseInt(max.cpu - existing.cpu)) return res.redirect('../create-server?err=NOTENOUGHRESOURCES');
   if (parseInt(req.query.ram) > parseInt(max.ram - existing.ram)) return res.redirect('../create-server?err=NOTENOUGHRESOURCES');
-  if (parseInt(req.query.disk) > parseInt(max.disk - existing.disk)) return res.redirect('../create-server?err=NOTENOUGHRESOURCES');
+  // if (parseInt(req.query.disk) > parseInt(max.disk - existing.disk)) return res.redirect('../create-server?err=NOTENOUGHRESOURCES');
 
-  // Ensure resources are above 128MB / 10%
+  // Ensure resources are above 128MB / 0 core
 
   if (parseInt(req.query.ram) < 128) return res.redirect('../create-server?err=INVALID');
-  if (parseInt(req.query.cpu) < 10) return res.redirect('../create-server?err=INVALID');
-  if (parseInt(req.query.disk) < 128) return res.redirect('../create-server?err=INVALID');
+  if (parseInt(req.query.cpu) < 0) return res.redirect('../create-server?err=INVALID');
+  // if (parseInt(req.query.disk) < 128) return res.redirect('../create-server?err=INVALID');
 
   // Name checks
 
@@ -96,62 +98,55 @@ router.get('/create', ensureAuthenticated, async (req, res) => {
   if (req.query.name.length < 3) return res.redirect('../create-server?err=INVALID');
 
   // Make sure node, image, resources are numbers
+  if ( isNaN(req.query.cpu) || isNaN(req.query.ram)) return res.redirect('../create-server?err=INVALID'); // || isNaN(req.query.disk) || isNaN(req.query.node) || isNaN(req.query.image) ||
+  if (req.query.cpu < 0 || req.query.ram < 1) return res.redirect('../create-server?err=INVALID'); // || req.query.disk < 1
 
-  if (isNaN(req.query.node) || isNaN(req.query.image) || isNaN(req.query.cpu) || isNaN(req.query.ram) || isNaN(req.query.disk)) return res.redirect('../create-server?err=INVALID');
-  if (req.query.cpu < 1 || req.query.ram < 1 || req.query.disk < 1) return res.redirect('../create-server?err=INVALID');
-
-
-  // need to remake that part
   try {
       const userId = await db.get(`id-${req.user.email}`);
       const name = req.query.name;
-      const node = parseInt(req.query.node);
-      const imageId = parseInt(req.query.image);
+      const node = req.query.node;
+      const imageId = req.query.image;
       const cpu = parseInt(req.query.cpu);
       const ram = parseInt(req.query.ram);
-      const disk = parseInt(req.query.disk);
+      // const disk = parseInt(req.query.disk); 
+
+      const portsData  = require('../storage/ports.json');
+      const selectedPortKey = getRandomPort(portsData.portAvailable);
+      const selectedPort = portsData.portAvailable[selectedPortKey];
+
+      if(!selectedPort || !selectedPortKey) {
+        console.error('No ports available');
+      }
+
+      portsData.portInUse[selectedPortKey] = selectedPort;
+      delete portsData.portAvailable[selectedPortKey];
+
+      fs.writeFileSync('./storage/ports.json', JSON.stringify(portsData, null, 2), 'utf-8');
 
       const images = require('../storage/images.json');
-      const image = images.find(e => e.id === imageId);
+
+      const image = images.find(image => image.Id === imageId);
       if (!image) return res.redirect('../create-server?err=INVALID_IMAGE');
+      const Image = image.Image;
 
-      const dockerImage = egg.docker_image;
-      const startupCommand = egg.startup;
-      const environment = egg.settings;
-
-      await axios.post(`${skyport[0].url}/api/application/servers`, {
+      await axios.post(`${skyport.url}/api/instances/deploy`, {
+          image: Image,
+          memory: ram,
+          cpu: cpu,
+          ports: selectedPort,
+          nodeId: node,
           name: name,
           user: userId,
-          egg: eggId,
-          docker_image: dockerImage,
-          startup: startupCommand,
-          environment: environment,
-          limits: {
-              memory: ram,
-              swap: -1,
-              disk: disk,
-              io: 500,
-              cpu: cpu
-          },
-          feature_limits: {
-              databases: database,
-              backups: backup,
-              allocations: allocation
-          },
-          deploy: {
-            locations: [location],
-            dedicated_ip: false,
-            port_range: []
-          }
+          primary: selectedPort
       }, {
           headers: {
-              'Authorization': `Bearer ${skyport[0].key}`
+            'x-api-key': skyport.key
           }
       });
 
       res.redirect('../dashboard?success=CREATED');
   } catch (error) {
-      console.error(error);
+      console.error(error.data);
       res.redirect('../create-server?err=ERRORONCREATE');
   }
 });
