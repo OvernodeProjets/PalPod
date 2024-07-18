@@ -1,4 +1,6 @@
 {
-  "portAvailable": {},
+  "portAvailable": {
+    "25565": "25565:25565"
+  },
   "portInUse": {}
 }
