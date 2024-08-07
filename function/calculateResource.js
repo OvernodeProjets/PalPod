@@ -1,5 +1,5 @@
 const axios = require('axios');
-const fs = require('fs');
+const { logError } = require('../function/logError')
 
 const skyport = {
     url: process.env.SKYPORT_URL,
@@ -42,12 +42,9 @@ async function calculateResource(userID, resource) {
     } catch (err) {
       // Log errors to a file
       const errorMessage = `[LOG] Failed to calculate resources for user ${userID}. Error: ${err.message}\n`;
-      console.error(errorMessage);
-      fs.appendFile(process.env.LOGS_ERROR_PATH, errorMessage, (err) => {
-        if (err) console.error(`Failed to save log: ${err.message}`);
-      });
+      logError('Failed to calculate resources for user', errorMessage);
       throw err;
     }
-};
+}
 
-module.exports = { calculateResource }
+module.exports = { calculateResource };

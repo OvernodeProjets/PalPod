@@ -3,4 +3,4 @@ function getRandomPort(ports) {
     return keys[Math.floor(Math.random() * keys.length)];
 }
 
-module.exports = { getRandomPort }
+module.exports = { getRandomPort };

@@ -1,8 +1,16 @@
 const { db } = require('./db');
 
 async function checkPassword(email) {
-    let password = await db.get(`password-${email}`);
-    return password;
-};
+  try {
+    const password = await db.get(`password-${email}`);
 
-module.exports = { checkPassword }
+    if (!password) return null;
+
+    return password;
+  } catch (error) {
+    console.error('Error retrieving password:', error);
+    throw error;
+  }
+}
+
+module.exports = { checkPassword };

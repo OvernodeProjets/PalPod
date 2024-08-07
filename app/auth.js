@@ -7,6 +7,7 @@ const randomstring = require("randomstring");
 const router = express.Router();
 
 const { db } = require('../function/db');
+const { logError } = require('../function/logError')
 
 const skyport = {
   url: process.env.SKYPORT_URL,
@@ -14,25 +15,32 @@ const skyport = {
 };
 
 // Configure passport to use Discord
-const discordStrategy = new DiscordStrategy({
+passport.use(new DiscordStrategy({
   clientID: process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET,
   callbackURL: process.env.DISCORD_CALLBACK_URL,
   scope: ['identify', 'email']
 }, (accessToken, refreshToken, profile, done) => {
   return done(null, profile);
+}));
+
+// Serialize and deserialize user
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
 });
 
 // Skyport account system
 async function checkAccount(email, username, id) {
   try {
-    const type = 'email';
-
     // Check if user already exists in Skyport
     let response;
     try {
       response = await axios.post(`${skyport.url}/api/getUser`, {
-        type,
+        type: 'email',
         value: email
       }, {
         headers: {
@@ -46,8 +54,10 @@ async function checkAccount(email, username, id) {
       await db.set(`id-${email}`, response.data.userId);
       return;
     } catch (err) {
-      // If user does not exist, proceed to create
-      console.log('User does not exist in Skyport. Creating user...');
+      if (err.response && err.response.status !== 404) {
+        logError('Failed to check user existence in Skyport', err);
+        throw err;
+      }
     }
 
     // Generate a random password for new user
@@ -68,62 +78,34 @@ async function checkAccount(email, username, id) {
       });
 
       // Log creation and set password in database
-      console.log('User created in Skyport. User ID:', response.data.userId);
       await db.set(`password-${email}`, password);
       await db.set(`id-${email}`, response.data.userId);
-      fs.appendFile(process.env.LOGS_PATH, '[LOG] User created in Skyport.\n', (err) => {
-        if (err) console.log(`Failed to save log: ${err}`);
-      });
+      logError('User created in Skyport');
     } catch (err) {
-      // Handle conflict error (409) when user already exists
       if (err.response && err.response.status === 409) {
         console.log('User creation conflict: User already exists in Skyport.');
-        return;
       } else {
-        console.error('Failed to create user in Skyport:', err.message);
-        fs.appendFile(process.env.LOGS_ERROR_PATH, '[ERROR] Failed to create user in Skyport.\n', (err) => {
-          if (err) console.log(`Failed to save log: ${err}`);
-        });
+        logError('Failed to create user in Skyport', err);
         throw err;
       }
     }
   } catch (error) {
-    console.error('Error during account check:', error.message);
-    fs.appendFile(process.env.LOGS_ERROR_PATH, '[ERROR] Failed to check user account.\n', (err) => {
-      if (err) console.log(`Failed to save log: ${err}`);
-    });
+    logError('Error during account check', error);
     throw error;
   }
 }
 
-passport.use(discordStrategy);
+// Discord login route
+router.get('/login/discord', passport.authenticate('discord'));
 
-// Serialize and deserialize user
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-  done(null, user);
-});
-
-// Discord routes
-router.get('/login/discord', passport.authenticate('discord'), (req, res) => {
-  res.redirect('/');
-});
-
+// Discord callback route
 router.get('/callback/discord', passport.authenticate('discord', {
   failureRedirect: '/login'
 }), (req, res) => {
   checkAccount(req.user.email, req.user.username, req.user.id)
-    .then(() => {
-      res.redirect(req.session.returnTo || '/dashboard');
-    })
+    .then(() => res.redirect(req.session.returnTo || '/dashboard'))
     .catch(error => {
-      console.error('Error during account check:', error.message);
-      fs.appendFile(process.env.LOGS_ERROR_PATH, '[ERROR] Error during account check.\n', (err) => {
-        if (err) console.log(`Failed to save log: ${err}`);
-      });
+      logError('Error during account check', error);
       res.redirect('/dashboard');
     });
 });
@@ -132,9 +114,7 @@ router.get('/callback/discord', passport.authenticate('discord', {
 router.get('/logout', (req, res) => {
   req.logout((err) => {
     if (err) {
-      fs.appendFile(process.env.LOGS_ERROR_PATH, `[ERROR] Logout failed: ${err.message}\n`, (logErr) => {
-        if (logErr) console.log(`Failed to save log: ${logErr}`);
-      });
+      logError('Logout failed', err);
       return res.redirect('/');
     }
     res.redirect('/');

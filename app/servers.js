@@ -51,7 +51,6 @@ router.get('/delete', ensureAuthenticated, async (req, res) => {
 
         if (server.data.User !== userId) return res.redirect('../dashboard?err=DONOTOWN');
 
-        console.log("a")
         await axios.delete(`${skyport.url}/api/instance/delete`, {
           headers: {
             'x-api-key': skyport.key
@@ -60,8 +59,6 @@ router.get('/delete', ensureAuthenticated, async (req, res) => {
             id: serverId
           }
         });
-        
-        console.log("b")
 
         res.redirect('/dashboard?success=DELETE');
     } catch (error) {

@@ -116,7 +116,7 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
       const max = await maxResources(req.user.email);
   
       res.render('dashboard', { 
-        coins: await db.get(`coins-${req.user.email}`) || 0, // User's coins
+        coins: await db.get(`coins-${req.user.email}`), // User's coins
         req: req, // Request (queries)
         name: process.env.APP_NAME || "PalPod", // Dashboard name
         user: req.user, // User info

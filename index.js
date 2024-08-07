@@ -45,24 +45,31 @@ app.use(requestIp.mw());
 
 // VPN detection middleware
 app.use(async (req, res, next) => {
-  const ipAddress = req.clientIp;
-
-  if (!ipaddr.isValid(ipAddress)) {
-    console.error(`Invalid IP Address: ${ipAddress}`);
-    return res.status(400).json('Invalid IP address format.');
+  if (process.env.PROXYCHECK_KEY || !process.env.PROXYCHECK_KEY == "0000000000000000000000000000") {
+    try {
+      const ipAddress = req.clientIp;
+  
+      if (!ipaddr.isValid(ipAddress)) {
+        console.error(`Invalid IP Address: ${ipAddress}`);
+        return res.status(400).json('Invalid IP address format.');
+      }
+  
+      const userIp = ipaddr.process(ipAddress).toString();
+  
+      const proxycheck_key = process.env.PROXYCHECK_KEY;
+      const proxyResponse = await axios.get(`http://proxycheck.io/v2/${userIp}?key=${proxycheck_key}`);
+      const proxyData = proxyResponse.data;
+  
+      if (proxyData[userIp] && proxyData[userIp].proxy === 'yes') {
+        return res.status(403).json('It seems we have detected a proxy/VPN enabled on your end, please turn it off to continue.');
+      }
+  
+      next();
+    } catch (error) {
+      console.error('Error in VPN detection middleware:', error);
+      return res.status(500).json('Internal Server Error');
+    }
   }
-
-  const userIp = ipaddr.process(ipAddress).toString();
-
-  const proxycheck_key = process.env.PROXYCHECK_KEY;
-  const proxyResponse = await axios.get(`http://proxycheck.io/v2/${userIp}?key=${proxycheck_key}`);
-  const proxyData = proxyResponse.data;
-
-  if (proxyData[userIp] && proxyData[userIp].proxy === 'yes') {
-    return res.status(403).json('It seems we have detected a proxy/VPN enabled on your end, please turn it off to continue.');
-  }
-
-  next();
 });
 
 // Require the routes
