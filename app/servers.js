@@ -145,7 +145,7 @@ router.get('/create', ensureAuthenticated, async (req, res) => {
 
       res.redirect('../dashboard?success=CREATED');
   } catch (error) {
-      console.error(error.data);
+      console.error(error);
       res.redirect('../create-server?err=ERRORONCREATE');
   }
 });
