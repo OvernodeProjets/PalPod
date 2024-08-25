@@ -1,6 +1,12 @@
 ![image](https://github.com/OvernodeProjets/Fixed-Palladium/assets/73477238/e864f37f-e570-4d60-bb80-b0b7b4fc1618)
 ![image](https://github.com/OvernodeProjets/Fixed-Palladium/assets/73477238/2fcdb76a-459e-4e7c-8c16-e53ff20a4f27)
 
+<br>
+
+| :exclamation:  PalPod go been combined with fixed-palladium, i work on this version isn't release but soon                                         |
+|------------------------------------------------------------------------------------------------------------------------------------------------------|
+
+
 <hr>
 
 # PalPod
