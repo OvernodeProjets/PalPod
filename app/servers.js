@@ -123,11 +123,13 @@ router.get('/create', ensureAuthenticated, async (req, res) => {
       const images = require('../storage/images.json');
 
       const image2 = images.find(image => image.Id === imageId);
+      const imagename = image2.Name;
       if (!image2) return res.redirect('../create-server?err=INVALID_IMAGE');
       const image = image2.Image;
 
       await axios.post(`${skyport.url}/api/instances/deploy`, {
           image,
+          imagename,
           memory,
           cpu,
           ports: selectedPort,
