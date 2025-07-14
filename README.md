@@ -3,8 +3,10 @@
 
 <br>
 
-| :exclamation:  PalPod go been combined with fixed-palladium, i work on this version isn't release but soon                                         |
 |------------------------------------------------------------------------------------------------------------------------------------------------------|
+| :exclamation: PalPod was an early version of the Skyport API. It is no longer maintained and will soon be moved to a public archive.                |
+| A new integration using the Skyport API may be added to Fixed-Palladium in the future.                                                               |
+| For now, **PalPod is obsolete** and **strongly discouraged** for use.                                                                                |
 
 
 <hr>
