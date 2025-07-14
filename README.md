@@ -7,6 +7,7 @@
 > PalPod was an early version of the Skyport API. It is no longer maintained and will soon be moved to a public archive.  
 > A new integration using the Skyport API may be added to Fixed-Palladium in the future.  
 > For now, it is **strongly discouraged** for use.
+> Use [Fixed-Palladium](https://github.com/OvernodeProjets/Fixed-Palladium)
 
 
 <hr>
